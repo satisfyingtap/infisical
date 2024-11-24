@@ -326,6 +326,9 @@ import {
   TUserAliases,
   TUserAliasesInsert,
   TUserAliasesUpdate,
+  TUserCredentials,
+  TUserCredentialsInsert,
+  TUserCredentialsUpdate,
   TUserEncryptionKeys,
   TUserEncryptionKeysInsert,
   TUserEncryptionKeysUpdate,
@@ -428,6 +431,11 @@ declare module "knex/types/tables" {
       TUserGroupMembership,
       TUserGroupMembershipInsert,
       TUserGroupMembershipUpdate
+    >;
+    [TableName.UserCredentials]: KnexOriginal.CompositeTableType<
+      TUserCredentials,
+      TUserCredentialsInsert,
+      TUserCredentialsUpdate
     >;
     [TableName.GroupProjectMembership]: KnexOriginal.CompositeTableType<
       TGroupProjectMemberships,

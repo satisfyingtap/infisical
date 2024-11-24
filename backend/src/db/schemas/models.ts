@@ -21,6 +21,7 @@ export enum TableName {
   UserGroupMembership = "user_group_membership",
   UserAliases = "user_aliases",
   UserEncryptionKey = "user_encryption_keys",
+  UserCredentials = "user_credentials",
   AuthTokens = "auth_tokens",
   AuthTokenSession = "auth_token_sessions",
   BackupPrivateKey = "backup_private_key",
