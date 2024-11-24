@@ -128,7 +128,14 @@ export const userCredentialsServiceFactory = ({
     };
   };
 
-  const updateUserCredentialById = async ({ id, actorId, actorOrgId, ...data }: TUpdateUserCredentialDTO) => {
+  const updateUserCredentialById = async ({
+    id,
+    type,
+    name,
+    actorId,
+    actorOrgId,
+    ...data
+  }: TUpdateUserCredentialDTO) => {
     if (!isUuidV4(id)) throw new BadRequestError({ message: "Invalid user credential ID" });
     if (!actorId) throw new ForbiddenRequestError();
     if (!actorOrgId) throw new ForbiddenRequestError();
@@ -144,7 +151,22 @@ export const userCredentialsServiceFactory = ({
 
     if (userCredential.userId !== actorId) throw new ForbiddenRequestError();
 
-    return userCredentialsDAL.updateById(id, { ...data, updatedAt: new Date() });
+    const secretValue = JSON.stringify({
+      ...data
+    });
+
+    if (secretValue.length > 10_000) {
+      throw new BadRequestError({ message: "Shared secret value too long" });
+    }
+    const encryptWithRoot = kmsService.encryptWithRootKey();
+    const encryptedSecret = encryptWithRoot(Buffer.from(secretValue));
+
+    return userCredentialsDAL.updateById(id, {
+      type,
+      name,
+      encryptedData: encryptedSecret.toString("hex"),
+      updatedAt: new Date()
+    });
   };
 
   const getUserCredentialById = async ({ userCredentialId, actorId, actorOrgId }: TGetActiveUserCredentialByIdDTO) => {

@@ -1,13 +1,9 @@
 import { z } from "zod";
 
-import { UserCredentialsSchema } from "@app/db/schemas/user-credentials";
 import { readLimit, writeLimit } from "@app/server/config/rateLimiter";
 import { verifyAuth } from "@app/server/plugins/auth/verify-auth";
 import { AuthMode } from "@app/services/auth/auth-type";
-import {
-  TUpdateUserCredentialDTO,
-  UserCredentialResponseSchema
-} from "@app/services/user-credentials/user-credentials-types";
+import { UserCredentialResponseSchema } from "@app/services/user-credentials/user-credentials-types";
 
 export const registerUserCredentialsRouter = async (server: FastifyZodProvider) => {
   server.route({
@@ -102,7 +98,29 @@ export const registerUserCredentialsRouter = async (server: FastifyZodProvider) 
       params: z.object({
         credentialId: z.string()
       }),
-      body: UserCredentialsSchema.partial(),
+      body: z.discriminatedUnion("type", [
+        z.object({
+          type: z.literal("login"),
+          name: z.string(),
+          url: z.string(),
+          username: z.string(),
+          password: z.string()
+        }),
+        z.object({
+          type: z.literal("card"),
+          name: z.string(),
+          cardholderName: z.string(),
+          number: z.string(),
+          expMonth: z.string(),
+          expYear: z.string(),
+          code: z.string()
+        }),
+        z.object({
+          type: z.literal("note"),
+          name: z.string(),
+          content: z.string()
+        })
+      ]),
       response: {
         200: z.object({
           id: z.string()
@@ -113,7 +131,7 @@ export const registerUserCredentialsRouter = async (server: FastifyZodProvider) 
     handler: async (req) => {
       const { credentialId } = req.params;
       const updatedCredential = (await req.server.services.userCredentials.updateUserCredentialById({
-        ...(req.body as TUpdateUserCredentialDTO),
+        ...req.body,
         id: credentialId,
         actorId: req.permission.id,
         actorOrgId: req.permission.orgId
